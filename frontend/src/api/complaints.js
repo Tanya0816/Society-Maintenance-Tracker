@@ -5,6 +5,11 @@ export const getAllComplaints = async (params = {}) => {
   return response.data;
 };
 
+// Alias for getAllComplaints to match import in ComplaintContext
+export const getComplaints = async (params = {}) => {
+  return getAllComplaints(params);
+};
+
 export const getComplaint = async (id) => {
   const response = await api.get(`/complaints/${id}`);
   return response.data;
@@ -16,6 +21,16 @@ export const createComplaint = async (formData) => {
       'Content-Type': 'multipart/form-data',
     },
   });
+  return response.data;
+};
+
+export const updateComplaint = async (id, updates) => {
+  const response = await api.put(`/complaints/${id}`, updates);
+  return response.data;
+};
+
+export const deleteComplaint = async (id) => {
+  const response = await api.delete(`/complaints/${id}`);
   return response.data;
 };
 

@@ -11,7 +11,8 @@ router.post('/register', [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Valid email required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('role').isIn(['resident', 'admin']).withMessage('Invalid role')
+  body('role').isIn(['resident', 'admin']).withMessage('Invalid role'),
+  body('apartment').optional().trim()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -19,7 +20,7 @@ router.post('/register', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, apartment } = req.body;
 
     // Check if user exists
     const existingUser = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
@@ -32,9 +33,9 @@ router.post('/register', [
 
     // Insert user
     const result = db.prepare(`
-      INSERT INTO users (name, email, password, role) 
-      VALUES (?, ?, ?, ?)
-    `).run(name, email, hashedPassword, role);
+      INSERT INTO users (name, email, password, role, apartment) 
+      VALUES (?, ?, ?, ?, ?)
+    `).run(name, email, hashedPassword, role, apartment || null);
 
     const user = db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(result.lastInsertRowid);
 

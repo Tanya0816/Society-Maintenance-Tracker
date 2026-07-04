@@ -6,16 +6,21 @@ import {
   EnvelopeIcon, 
   LockClosedIcon, 
   UserIcon,
-  ArrowRightIcon
+  UserPlusIcon,
+  ArrowRightIcon,
+  HomeIcon
 } from '@heroicons/react/24/outline';
 
-const Login = () => {
+const Signup = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     role: 'resident',
+    apartment: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,16 +28,56 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    
+    // Validation
+    if (!formData.name || !formData.email || !formData.password || !formData.apartment) {
+      setError('All fields are required');
+      return;
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
 
-    const result = await login(formData.email, formData.password, formData.role);
+    try {
+      // Call register API
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+        }),
+      });
 
-    if (result.success) {
-      navigate(formData.role === 'admin' ? '/admin' : '/dashboard');
-    } else {
-      setError(result.error);
+      const data = await response.json();
+
+      if (response.ok) {
+        // Auto-login after signup
+        const result = await login(formData.email, formData.password, formData.role);
+        if (result.success) {
+          navigate(formData.role === 'admin' ? '/admin' : '/dashboard');
+        }
+      } else {
+        setError(data.error || 'Signup failed. Please try again.');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -44,29 +89,29 @@ const Login = () => {
             <div className="relative">
               <BuildingOfficeIcon className="h-20 w-20 text-purple-600" />
               <div className="absolute -top-2 -right-2 w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center floating-animation">
-                <span className="text-white text-lg">✓</span>
+                <UserPlusIcon className="h-4 w-4 text-white" />
               </div>
             </div>
           </div>
           
           <div className="space-y-4">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              SocietyTracker
+              Join Our Community
             </h1>
             <p className="text-xl text-gray-700 font-medium">
-              Maintenance Made Simple
+              Create Your Account
             </p>
             <p className="text-gray-600 leading-relaxed">
-              Report issues, track progress, and keep your community running smoothly. 
-              Join thousands of residents who trust us for efficient maintenance management.
+              Sign up to start reporting issues, tracking maintenance requests, 
+              and staying connected with your community management.
             </p>
           </div>
 
           <div className="grid grid-cols-3 gap-4 pt-6">
             {[
-              { icon: '⚡', label: 'Fast' },
-              { icon: '🔒', label: 'Secure' },
-              { icon: '📱', label: 'Easy' }
+              { icon: '📝', label: 'Report Issues' },
+              { icon: '📊', label: 'Track Progress' },
+              { icon: '🔔', label: 'Get Updates' }
             ].map((feature, idx) => (
               <div key={idx} className="text-center p-4 glass-card">
                 <div className="text-3xl mb-2">{feature.icon}</div>
@@ -76,16 +121,31 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Right Side - Login Form */}
+        {/* Right Side - Signup Form */}
         <div className="glass-card p-8 slide-in">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome Back!
+              Create Account
             </h2>
-            <p className="text-gray-600">Sign in to your account</p>
+            <p className="text-gray-600">Join our community today</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <UserIcon className="h-4 w-4 mr-2 text-purple-600" />
+                Full Name
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="input-modern"
+                placeholder="John Doe"
+                required
+              />
+            </div>
+
             <div className="space-y-2">
               <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
                 <EnvelopeIcon className="h-4 w-4 mr-2 text-purple-600" />
@@ -103,6 +163,21 @@ const Login = () => {
 
             <div className="space-y-2">
               <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <HomeIcon className="h-4 w-4 mr-2 text-purple-600" />
+                Apartment Number
+              </label>
+              <input
+                type="text"
+                value={formData.apartment}
+                onChange={(e) => setFormData({ ...formData, apartment: e.target.value })}
+                className="input-modern"
+                placeholder="A-101"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
                 <LockClosedIcon className="h-4 w-4 mr-2 text-purple-600" />
                 Password
               </label>
@@ -113,13 +188,30 @@ const Login = () => {
                 className="input-modern"
                 placeholder="••••••••"
                 required
+                minLength="6"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <LockClosedIcon className="h-4 w-4 mr-2 text-purple-600" />
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                className="input-modern"
+                placeholder="••••••••"
+                required
+                minLength="6"
               />
             </div>
 
             <div className="space-y-2">
               <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
                 <UserIcon className="h-4 w-4 mr-2 text-purple-600" />
-                I am a...
+                I want to join as...
               </label>
               <select
                 value={formData.role}
@@ -141,47 +233,29 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-gradient-blue py-4 text-lg shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full btn-gradient-blue py-4 text-lg shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-6"
             >
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Logging in...</span>
+                  <span>Creating Account...</span>
                 </>
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>Create Account</span>
                   <ArrowRightIcon className="h-5 w-5" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <div className="text-center mb-6">
-              <p className="text-sm text-gray-600">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-purple-600 hover:text-purple-800 font-semibold">
-                  Sign Up
-                </Link>
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-3 font-medium">Demo Credentials:</p>
-              <div className="space-y-2">
-                <div className="bg-gray-50 rounded-lg p-3 border-2 border-gray-200">
-                  <p className="text-xs font-mono text-gray-800">
-                    <span className="font-semibold">Resident:</span> resident@demo.com / password
-                  </p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3 border-2 border-gray-200">
-                  <p className="text-xs font-mono text-gray-800">
-                    <span className="font-semibold">Admin:</span> admin@demo.com / password
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Already have an account?{' '}
+              <Link to="/login" className="text-purple-600 hover:text-purple-800 font-semibold">
+                Sign In
+              </Link>
+            </p>
           </div>
         </div>
       </div>
@@ -189,4 +263,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;
