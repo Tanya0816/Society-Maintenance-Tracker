@@ -18,6 +18,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
+  const isNoticesPage = location.pathname === '/notices';
 
   return (
     <>
@@ -31,7 +32,7 @@ export default function Navbar() {
 
           <div className="flex-1" />
 
-          {isAuthenticated ? (
+          {isAuthenticated && !isNoticesPage ? (
             <div className="flex items-center gap-3">
               <Link to="/complaint/new" className="topnav-btn-primary">
                 <PlusIcon className="h-3.5 w-3.5" />
@@ -58,9 +59,9 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <Link to="/login" className="topnav-link">Log in</Link>
-              <Link to="/signup" className="topnav-btn-primary">Sign up</Link>
+            <div className="flex items-center gap-4 ml-auto">
+              <Link to="/login" className="topnav-link text-sm font-medium">Log in</Link>
+              <Link to="/signup" className="topnav-btn-primary text-sm">Sign up</Link>
             </div>
           )}
         </div>
