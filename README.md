@@ -5,21 +5,21 @@ A complete multi-tenant SaaS platform for society maintenance complaint manageme
 ## Features
 
 ### Input Features
-- ✅ **Resident Complaints**: Submit complaints with title, description, category, location, and up to 5 photos
-- ✅ **Admin Status Updates**: Update complaint status with automatic history tracking
-- ✅ **Admin Priority Updates**: Adjust complaint priority levels with audit trail
-- ✅ **Admin Notices**: Create announcements with priority levels and optional expiry dates
+-  **Resident Complaints**: Submit complaints with title, description, category, location, and up to 5 photos
+-  **Admin Status Updates**: Update complaint status with automatic history tracking
+-  **Admin Priority Updates**: Adjust complaint priority levels with audit trail
+-  **Admin Notices**: Create announcements with priority levels and optional expiry dates
 
 ### Output Features  
-- ✅ **Tracked Complaints**: All complaints with complete history tracking
-- ✅ **Notice Board**: View and manage society notices with priority indicators
-- ✅ **Email Updates**: Automated email notifications for status changes, priority updates, and new notices
+-  **Tracked Complaints**: All complaints with complete history tracking
+-  **Notice Board**: View and manage society notices with priority indicators
+-  **Email Updates**: Automated email notifications for status changes, priority updates, and new notices
 
 ### Visibility & Access
-- ✅ **All residents can view all complaints** - not just their own
-- ✅ **Complaint history accessible to all users** with full audit trail
-- ✅ **Admin filtering by description and photos** - search in title AND description
-- ✅ **Admin filtering by category** - organize and find issues by type
+-  **All residents can view all complaints** - not just their own
+-  **Complaint history accessible to all users** with full audit trail
+-  **Admin filtering by description and photos** - search in title AND description
+-  **Admin filtering by category** - organize and find issues by type
 
 ## Tech Stack
 
