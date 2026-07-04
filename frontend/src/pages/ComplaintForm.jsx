@@ -1,300 +1,207 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useComplaints } from '../context/ComplaintContext';
-import { 
-  PhotoIcon, 
-  XMarkIcon,
-  SparklesIcon,
-  PaperAirplaneIcon,
-  BuildingOfficeIcon
-} from '@heroicons/react/24/outline';
+import { PhotoIcon, XMarkIcon, PaperAirplaneIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../context/AuthContext';
+import Sidebar from '../components/Sidebar';
 
-const ComplaintForm = () => {
+const CATEGORIES = [
+  { value: 'Plumbing', label: 'Plumbing', emoji: '🔧' },
+  { value: 'Electrical', label: 'Electrical', emoji: '⚡' },
+  { value: 'Structural', label: 'Structural', emoji: '🏗️' },
+  { value: 'Cleaning', label: 'Cleaning', emoji: '🧹' },
+  { value: 'Security', label: 'Security', emoji: '🔒' },
+  { value: 'Garden', label: 'Garden', emoji: '🌿' },
+  { value: 'Other', label: 'Other', emoji: '📋' },
+];
+
+const PRIORITIES = [
+  { value: 'low', label: 'Low', desc: 'Non-urgent, can wait', color: '#36b37e' },
+  { value: 'medium', label: 'Medium', desc: 'Needs attention soon', color: '#ff8b00' },
+  { value: 'high', label: 'High', desc: 'Urgent, affects daily life', color: '#de350b' },
+];
+
+function Sidebar() {
+  const location = useLocation();
+  const { user } = useAuth();
+  const isActive = (p) => location.pathname === p;
+  return (
+    <aside className="sidebar hidden md:flex flex-col">
+      <div className="sidebar-section">Navigation</div>
+      <Link to="/dashboard" className={`sidebar-link ${isActive('/dashboard') ? 'active' : ''}`}>
+        <ClipboardDocumentListIcon className="h-4 w-4" /> My Requests
+      </Link>
+      <Link to="/notices" className={`sidebar-link ${isActive('/notices') ? 'active' : ''}`}>
+        <BellIcon className="h-4 w-4" /> Notices
+      </Link>
+      {user?.role === 'admin' && (
+        <Link to="/admin" className={`sidebar-link ${isActive('/admin') ? 'active' : ''}`}>
+          <ShieldCheckIcon className="h-4 w-4" /> Admin Panel
+        </Link>
+      )}
+      <div className="sidebar-section mt-4">Actions</div>
+      <Link to="/complaint/new" className="sidebar-link active">
+        <PlusIcon className="h-4 w-4" /> Create Request
+      </Link>
+    </aside>
+  );
+}
+
+export default function ComplaintForm() {
   const navigate = useNavigate();
   const { createComplaint } = useComplaints();
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: '',
-    priority: 'medium',
-    photos: [],
-  });
+  const [form, setForm] = useState({ title: '', description: '', category: '', priority: 'medium', photos: [] });
+  const [previews, setPreviews] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [previewPhotos, setPreviewPhotos] = useState([]);
 
-  const categories = [
-    'Plumbing',
-    'Electrical', 
-    'Structural',
-    'Cleaning',
-    'Security',
-    'Garden',
-    'Other',
-  ];
-
-  const categoryIcons = {
-    'Plumbing': '🔧',
-    'Electrical': '⚡',
-    'Structural': '🏗️',
-    'Cleaning': '🧹',
-    'Security': '🔒',
-    'Garden': '🌿',
-    'Other': '📋'
-  };
-
-  const priorityColors = {
-    'low': 'from-emerald-500 to-green-500',
-    'medium': 'from-amber-500 to-yellow-500', 
-    'high': 'from-red-500 to-orange-500',
-  };
-
-  const handlePhotoChange = (e) => {
+  const handlePhotos = (e) => {
     const files = Array.from(e.target.files);
-    const newPhotos = [...formData.photos, ...files];
-    const newPreviews = [...previewPhotos, ...files.map(file => URL.createObjectURL(file))];
-    
-    setFormData({ ...formData, photos: newPhotos });
-    setPreviewPhotos(newPreviews);
+    setForm(f => ({ ...f, photos: [...f.photos, ...files] }));
+    setPreviews(p => [...p, ...files.map(file => URL.createObjectURL(file))]);
   };
 
-  const removePhoto = (index) => {
-    const newPhotos = formData.photos.filter((_, i) => i !== index);
-    const newPreviews = previewPhotos.filter((_, i) => i !== index);
-    
-    setFormData({ ...formData, photos: newPhotos });
-    setPreviewPhotos(newPreviews);
+  const removePhoto = (i) => {
+    setForm(f => ({ ...f, photos: f.photos.filter((_, idx) => idx !== i) }));
+    setPreviews(p => p.filter((_, idx) => idx !== i));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
-    const result = await createComplaint(formData);
-
-    if (result.success) {
-      navigate('/dashboard');
-    } else {
-      setError(result.error);
-    }
+    const result = await createComplaint(form);
+    if (result.success) navigate('/dashboard');
+    else setError(result.error);
     setLoading(false);
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
-      {/* Header */}
-      <div className="mb-8 slide-in">
-        <div className="flex items-center space-x-3 mb-2">
-          <SparklesIcon className="h-8 w-8 text-purple-600" />
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            New Complaint
-          </h1>
+    <div className="page-layout">
+      <Sidebar />
+      <main className="page-content">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <button onClick={() => navigate(-1)} className="btn-secondary p-1.5">
+            <ArrowLeftIcon className="h-4 w-4" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Create Request</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Submit a new maintenance complaint</p>
+          </div>
         </div>
-        <p className="text-gray-600 text-lg mt-2">
-          Submit a maintenance request and we'll take care of it!
-        </p>
-      </div>
 
-      {/* Main Form */}
-      <form onSubmit={handleSubmit} className="glass-card p-8 slide-in">
-        <div className="space-y-8">
-          {/* Title */}
-          <div className="space-y-2">
-            <label className="flex items-center text-sm font-bold text-gray-700 uppercase tracking-wide">
-              <SparklesIcon className="h-4 w-4 mr-2 text-purple-600" />
-              Complaint Title *
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="input-modern text-lg"
-              placeholder="e.g., Leaking faucet in kitchen sink"
-              required
-            />
-          </div>
+        <div className="max-w-2xl">
+          <form onSubmit={handleSubmit} className="space-y-5">
 
-          {/* Category */}
-          <div className="space-y-3">
-            <label className="flex items-center text-sm font-bold text-gray-700 uppercase tracking-wide">
-              <BuildingOfficeIcon className="h-4 w-4 mr-2 text-purple-600" />
-              Category *
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {categories.map((cat) => (
-                <label key={cat} className="relative cursor-pointer">
-                  <input
-                    type="radio"
-                    name="category"
-                    value={cat}
-                    checked={formData.category === cat}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="sr-only"
-                    required
-                  />
-                  <div className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
-                      formData.category === cat 
-                        ? 'border-purple-500 bg-purple-50 shadow-lg transform scale-105' 
-                        : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
-                    }`}>
-                    <div className="text-3xl mb-2">{categoryIcons[cat]}</div>
-                    <div className="text-sm font-semibold text-gray-800">{cat}</div>
-                  </div>
-                </label>
-              ))}
+            {/* Summary */}
+            <div className="card p-5">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Details</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="field-label mb-1">Summary *</label>
+                  <input type="text" required className="field-input text-sm"
+                    value={form.title}
+                    onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                    placeholder="Brief description of the issue" />
+                </div>
+                <div>
+                  <label className="field-label mb-1">Description *</label>
+                  <textarea required rows="5" className="field-input text-sm resize-none"
+                    value={form.description}
+                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                    placeholder="Provide full details — location, when it started, how it affects you..." />
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Priority */}
-          <div className="space-y-3">
-            <label className="flex items-center text-sm font-bold text-gray-700 uppercase tracking-wide">
-              <SparklesIcon className="h-4 w-4 mr-2 text-purple-600" />
-              Priority Level *
-            </label>
-            <div className="grid grid-cols-3 gap-4">
-              {['low', 'medium', 'high'].map((priority) => (
-                <label key={priority} className="relative cursor-pointer">
-                  <input
-                    type="radio"
-                    name="priority"
-                    value={priority}
-                    checked={formData.priority === priority}
-                    onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                    className="sr-only"
-                  />
-                  <div className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
-                      formData.priority === priority 
-                        ? `border-purple-500 shadow-xl transform scale-105` 
-                        : 'border-gray-200 hover:border-purple-300'
-                    }`}>
-                    <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r ${priorityColors[priority]} text-white mb-2`}>
-                      <span className="text-xl font-bold">{priority.charAt(0).toUpperCase()}</span>
-                    </div>
-                    <div className="text-sm font-bold text-gray-800 capitalize">{priority}</div>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <label className="flex items-center text-sm font-bold text-gray-700 uppercase tracking-wide">
-              <PaperAirplaneIcon className="h-4 w-4 mr-2 text-purple-600" />
-              Detailed Description *
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows="6"
-              className="input-modern"
-              placeholder="Please describe the issue in detail, including location, when it started, and any other relevant information..."
-              required
-            />
-          </div>
-
-          {/* Photos */}
-          <div className="space-y-3">
-            <label className="flex items-center text-sm font-bold text-gray-700 uppercase tracking-wide">
-              <PhotoIcon className="h-4 w-4 mr-2 text-purple-600" />
-              Photos (Optional)
-            </label>
-            
-            {previewPhotos.length > 0 && (
-              <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mb-4">
-                {previewPhotos.map((preview, idx) => (
-                  <div key={idx} className="relative group">
-                    <img 
-                      src={preview} 
-                      alt={`Preview ${idx + 1}`} 
-                      className="w-full h-24 object-cover rounded-xl border-2 border-purple-200 shadow-md" 
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(idx)}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center shadow-lg"
-                    >
-                      <XMarkIcon className="h-4 w-4" />
-                    </button>
-                  </div>
+            {/* Category */}
+            <div className="card p-5">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Category *</h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {CATEGORIES.map(cat => (
+                  <label key={cat.value}
+                    className={`cursor-pointer border rounded p-3 text-center transition-all ${form.category === cat.value
+                      ? 'border-blue-600 bg-blue-50'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                      }`}>
+                    <input type="radio" name="category" value={cat.value} required className="sr-only"
+                      checked={form.category === cat.value}
+                      onChange={e => setForm(f => ({ ...f, category: e.target.value }))} />
+                    <div className="text-2xl mb-1">{cat.emoji}</div>
+                    <div className="text-xs font-semibold text-gray-700">{cat.label}</div>
+                  </label>
                 ))}
+              </div>
+            </div>
+
+            {/* Priority */}
+            <div className="card p-5">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Priority *</h2>
+              <div className="grid grid-cols-3 gap-3">
+                {PRIORITIES.map(p => (
+                  <label key={p.value}
+                    className={`cursor-pointer border rounded p-3 transition-all ${form.priority === p.value
+                      ? 'border-blue-600 bg-blue-50'
+                      : 'border-gray-200 hover:border-blue-300'
+                      }`}>
+                    <input type="radio" name="priority" value={p.value} className="sr-only"
+                      checked={form.priority === p.value}
+                      onChange={e => setForm(f => ({ ...f, priority: e.target.value }))} />
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
+                      <span className="text-sm font-semibold text-gray-800">{p.label}</span>
+                    </div>
+                    <div className="text-xs text-gray-500">{p.desc}</div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Attachments */}
+            <div className="card p-5">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Attachments (optional)</h2>
+              {previews.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {previews.map((src, i) => (
+                    <div key={i} className="relative group">
+                      <img src={src} alt={`Preview ${i + 1}`}
+                        className="h-16 w-16 object-cover rounded border border-gray-200" />
+                      <button type="button" onClick={() => removePhoto(i)}
+                        className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <XMarkIcon className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label className="relative flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded p-6 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors">
+                <input type="file" multiple accept="image/*" onChange={handlePhotos} className="sr-only" />
+                <PhotoIcon className="h-7 w-7 text-gray-400 mb-2" />
+                <span className="text-sm text-gray-600"><span className="text-blue-600 font-semibold">Click to upload</span> or drag and drop</span>
+                <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB each</span>
+              </label>
+            </div>
+
+            {error && (
+              <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 text-sm">
+                {error}
               </div>
             )}
 
-            <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors duration-200 bg-gray-50">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handlePhotoChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-600">
-                <span className="font-semibold text-purple-600">Click to upload</span> or drag and drop
-              </p>
-              <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 10MB each</p>
+            <div className="flex items-center gap-3">
+              <button type="submit" disabled={loading} className="btn-primary">
+                {loading ? (
+                  <><div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white" /><span>Submitting...</span></>
+                ) : (
+                  <><PaperAirplaneIcon className="h-3.5 w-3.5" /><span>Submit Request</span></>
+                )}
+              </button>
+              <button type="button" onClick={() => navigate(-1)} className="btn-secondary">Cancel</button>
             </div>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border-2 border-red-200 text-red-700 px-6 py-4 rounded-xl flex items-center space-x-3">
-              <span className="text-2xl">⚠️</span>
-              <span className="font-medium">{error}</span>
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <div className="pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-gradient-blue py-4 text-lg font-bold shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                  <span>Submitting Complaint...</span>
-                </>
-              ) : (
-                <>
-                  <span>Submit Complaint</span>
-                  <PaperAirplaneIcon className="h-6 w-6" />
-                </>
-              )}
-            </button>
-          </div>
+          </form>
         </div>
-      </form>
-
-      {/* Tips Section */}
-      <div className="mt-8 glass-card p-6 slide-in">
-        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center space-x-2">
-          <SparklesIcon className="h-5 w-5 text-purple-600" />
-          <span>Tips for Faster Resolution</span>
-        </h3>
-        <ul className="space-y-2 text-gray-700">
-          <li className="flex items-start space-x-2">
-            <span className="text-purple-600 mt-1">✓</span>
-            <span>Be specific about the exact location of the issue</span>
-          </li>
-          <li className="flex items-start space-x-2">
-            <span className="text-purple-600 mt-1">✓</span>
-            <span>Include clear photos if the issue is visible</span>
-          </li>
-          <li className="flex items-start space-x-2">
-            <span className="text-purple-600 mt-1">✓</span>
-            <span>Mention when the issue started and if it's getting worse</span>
-          </li>
-          <li className="flex items-start space-x-2">
-            <span className="text-purple-600 mt-1">✓</span>
-            <span>Choose the appropriate priority level based on urgency</span>
-          </li>
-        </ul>
-      </div>
+      </main>
     </div>
   );
-};
-
-export default ComplaintForm;
+}

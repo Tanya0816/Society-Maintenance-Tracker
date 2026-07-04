@@ -1,117 +1,111 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { 
-  HomeIcon, 
-  ClipboardDocumentListIcon, 
-  PlusIcon, 
-  BellIcon, 
-  UserIcon, 
+import {
+  BuildingOfficeIcon,
+  PlusIcon,
+  BellIcon,
   ArrowRightOnRectangleIcon,
-  BuildingOfficeIcon
+  ClipboardDocumentListIcon,
+  ShieldCheckIcon,
+  MegaphoneIcon,
+  HomeIcon,
+  UserCircleIcon,
 } from '@heroicons/react/24/outline';
 
-const Navbar = () => {
+export default function Navbar() {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const location = useLocation();
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="bg-white/95 backdrop-blur-lg shadow-lg sticky top-0 z-50 border-b border-purple-100">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-        <div className="flex justify-between h-14 items-center">
-          <div className="flex items-center space-x-2">
-            <Link to="/" className="flex items-center space-x-2 group">
-              <BuildingOfficeIcon className="h-5 w-5 text-purple-600 group-hover:text-pink-600 transition-colors duration-300" />
-              <div className="hidden sm:flex flex-col">
-                <span className="text-xs font-semibold text-gray-700">
-                  Society-Maintenance-Tracker
-                </span>
-              </div>
-            </Link>
-          </div>
+    <>
+      {/* ── Row 1: Brand bar ── */}
+      <nav className="topnav">
+        <div className="topnav-inner">
+          <Link to="/" className="topnav-brand">
+            <BuildingOfficeIcon className="h-4 w-4" />
+            <span>SocietyTrack</span>
+          </Link>
 
-          <div className="flex items-center space-x-1">
-            {isAuthenticated ? (
-              <>
-                <Link 
-                  to="/dashboard" 
-                  className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 hover:bg-purple-50 px-2 py-1.5 rounded-lg transition-all duration-200 group text-sm"
-                >
-                  <ClipboardDocumentListIcon className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                  <span className="hidden md:inline font-medium">My Complaints</span>
-                </Link>
-                
-                <Link 
-                  to="/complaint/new" 
-                  className="flex items-center space-x-1 btn-gradient px-3 py-1.5 shadow-md hover:shadow-lg text-sm"
-                >
-                  <PlusIcon className="h-4 w-4" />
-                  <span className="hidden md:inline font-semibold">New Complaint</span>
-                </Link>
+          <div className="flex-1" />
 
-                <Link 
-                  to="/notices" 
-                  className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 hover:bg-purple-50 px-2 py-1.5 rounded-lg transition-all duration-200 group text-sm"
-                >
-                  <BellIcon className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                  <span className="hidden md:inline font-medium">Notices</span>
-                </Link>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-3">
+              <Link to="/complaint/new" className="topnav-btn-primary">
+                <PlusIcon className="h-3.5 w-3.5" />
+                New Request
+              </Link>
 
-                {user?.role === 'admin' && (
-                  <Link 
-                    to="/admin" 
-                    className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 hover:bg-purple-50 px-2 py-1.5 rounded-lg transition-all duration-200 group text-sm"
-                  >
-                    <UserIcon className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                    <span className="hidden md:inline font-medium">Admin</span>
-                  </Link>
-                )}
-
-                <div className="flex items-center space-x-2 border-l border-purple-200 pl-2 ml-1">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-xs shadow-md">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="hidden lg:flex flex-col">
-                      <span className="text-xs font-semibold text-gray-800">{user?.name}</span>
-                      <span className="text-xs text-gray-500 capitalize">{user?.role}</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center justify-center space-x-1 text-red-500 hover:text-red-600 hover:bg-red-50 p-1 rounded-lg transition-all duration-200 group"
-                    title="Logout"
-                  >
-                    <ArrowRightOnRectangleIcon className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                  </button>
+              <div className="flex items-center gap-2 pl-3 border-l border-white/20">
+                <div className="w-7 h-7 rounded-full bg-blue-400 flex items-center justify-center text-white text-xs font-bold select-none">
+                  {user?.name?.charAt(0).toUpperCase()}
                 </div>
-              </>
-            ) : (
-              <div className="flex items-center space-x-1">
-                <Link 
-                  to="/login" 
-                  className="flex items-center space-x-1 text-gray-700 hover:text-purple-600 hover:bg-purple-50 px-3 py-1.5 rounded-lg transition-all duration-200 group text-sm"
-                >
-                  <span className="font-medium">Login</span>
-                </Link>
-                <Link 
-                  to="/signup" 
-                  className="btn-gradient px-3 py-1.5 shadow-md hover:shadow-lg font-semibold text-sm"
-                >
-                  Sign Up
-                </Link>
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-white leading-tight">{user?.name}</span>
+                  <span className="text-xs text-white/60 capitalize leading-tight">{user?.role}</span>
+                </div>
               </div>
+
+              <button
+                onClick={() => { logout(); navigate('/login'); }}
+                className="topnav-link flex items-center gap-1.5"
+                title="Sign out"
+              >
+                <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                <span className="text-xs">Sign out</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link to="/login" className="topnav-link">Log in</Link>
+              <Link to="/signup" className="topnav-btn-primary">Sign up</Link>
+            </div>
+          )}
+        </div>
+      </nav>
+
+      {/* ── Row 2: Sub-nav with page links ── */}
+      {isAuthenticated && (
+        <div className="subnav">
+          <div className="subnav-inner">
+            <Link
+              to="/dashboard"
+              className={`subnav-link ${isActive('/dashboard') ? 'active' : ''}`}
+            >
+              <HomeIcon className="h-4 w-4" />
+              Dashboard
+            </Link>
+
+            <Link
+              to="/complaint/new"
+              className={`subnav-link ${isActive('/complaint/new') ? 'active' : ''}`}
+            >
+              <PlusIcon className="h-4 w-4" />
+              New Request
+            </Link>
+
+            <Link
+              to="/notices"
+              className={`subnav-link ${isActive('/notices') ? 'active' : ''}`}
+            >
+              <BellIcon className="h-4 w-4" />
+              Notices
+            </Link>
+
+            {user?.role === 'admin' && (
+              <Link
+                to="/admin"
+                className={`subnav-link ${isActive('/admin') ? 'active' : ''}`}
+              >
+                <ShieldCheckIcon className="h-4 w-4" />
+                Admin Panel
+              </Link>
             )}
           </div>
         </div>
-      </div>
-    </nav>
+      )}
+    </>
   );
-};
-
-export default Navbar;
+}
