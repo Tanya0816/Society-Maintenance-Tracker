@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { BellIcon, PlusIcon, XMarkIcon, MegaphoneIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import * as adminApi from '../api/admin';
 import * as noticesApi from '../api/notices';
 import { useAuth } from '../context/AuthContext';
+import Sidebar from '../components/Sidebar';
 
 const PRIORITY = {
   urgent: { bar: 'bg-red-500', badge: 'bg-red-100 text-red-700 font-bold', border: 'border-red-400' },
@@ -11,37 +11,6 @@ const PRIORITY = {
   normal: { bar: 'bg-blue-500', badge: 'bg-blue-100 text-blue-700 font-bold', border: 'border-blue-300' },
   low: { bar: 'bg-gray-300', badge: 'bg-gray-100 text-gray-600 font-bold', border: 'border-gray-300' },
 };
-
-function Sidebar() {
-  const location = useLocation();
-  const { user } = useAuth();
-  const isActive = (p) => location.pathname === p;
-  return (
-    <aside className="sidebar hidden md:flex flex-col">
-      <div className="sidebar-section">Navigation</div>
-
-      {/* My Requests sub-container */}
-      <div className="mx-2 mb-1 rounded overflow-hidden border border-gray-100">
-        <Link to="/dashboard" className={`sidebar-link mx-0 rounded-none w-full ${isActive('/dashboard') ? 'active' : ''}`}>
-          My Requests
-        </Link>
-      </div>
-
-      {/* Notices sub-container */}
-      <div className="mx-2 mb-1 rounded overflow-hidden border border-gray-100">
-        <Link to="/notices" className={`sidebar-link mx-0 rounded-none w-full ${isActive('/notices') ? 'active' : ''}`}>
-          Notices
-        </Link>
-      </div>
-
-      {user?.role === 'admin' && (
-        <Link to="/admin" className={`sidebar-link ${isActive('/admin') ? 'active' : ''}`}>
-          <ShieldCheckIcon className="h-3.5 w-3.5" /> Admin Panel
-        </Link>
-      )}
-    </aside>
-  );
-}
 
 export default function NoticeBoard() {
   const { user } = useAuth();
@@ -145,7 +114,6 @@ export default function NoticeBoard() {
           </div>
         ) : visible.length === 0 ? (
           <div className="empty-state card">
-            <BellIcon className="h-3.5 w-3.5 mx-auto mb-2 text-gray-300" />
             <p className="text-sm font-semibold text-gray-600">No active notices</p>
             <p className="text-xs text-gray-400 mt-1">Check back later for announcements</p>
           </div>
@@ -157,7 +125,6 @@ export default function NoticeBoard() {
                 <div key={n.id} className={`card flex overflow-hidden border-l-4 ${p.border}`}>
                   <div className="flex-1 p-4">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <MegaphoneIcon className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                       <span className="text-sm font-semibold text-gray-900">{n.title}</span>
                       <span className={`text-xs px-2 py-0.5 rounded uppercase tracking-wide ${p.badge}`}>
                         {n.priority}

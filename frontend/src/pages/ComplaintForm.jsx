@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useComplaints } from '../context/ComplaintContext';
 import { PhotoIcon, XMarkIcon, PaperAirplaneIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
@@ -20,32 +20,6 @@ const PRIORITIES = [
   { value: 'medium', label: 'Medium', desc: 'Needs attention soon', color: '#ff8b00' },
   { value: 'high', label: 'High', desc: 'Urgent, affects daily life', color: '#de350b' },
 ];
-
-function Sidebar() {
-  const location = useLocation();
-  const { user } = useAuth();
-  const isActive = (p) => location.pathname === p;
-  return (
-    <aside className="sidebar hidden md:flex flex-col">
-      <div className="sidebar-section">Navigation</div>
-      <Link to="/dashboard" className={`sidebar-link ${isActive('/dashboard') ? 'active' : ''}`}>
-        <ClipboardDocumentListIcon className="h-4 w-4" /> My Requests
-      </Link>
-      <Link to="/notices" className={`sidebar-link ${isActive('/notices') ? 'active' : ''}`}>
-        <BellIcon className="h-4 w-4" /> Notices
-      </Link>
-      {user?.role === 'admin' && (
-        <Link to="/admin" className={`sidebar-link ${isActive('/admin') ? 'active' : ''}`}>
-          <ShieldCheckIcon className="h-4 w-4" /> Admin Panel
-        </Link>
-      )}
-      <div className="sidebar-section mt-4">Actions</div>
-      <Link to="/complaint/new" className="sidebar-link active">
-        <PlusIcon className="h-4 w-4" /> Create Request
-      </Link>
-    </aside>
-  );
-}
 
 export default function ComplaintForm() {
   const navigate = useNavigate();
